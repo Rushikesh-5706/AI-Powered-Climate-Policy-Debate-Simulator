@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered simulation of structured international climate policy debates between USA, EU, and China representatives grounded in real policy positions.">
+    <title>Climate Policy Debate Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #0f1629;
+            --bg-card: #131d35;
+            --bg-card-hover: #1a2744;
+            --border: rgba(255,255,255,0.08);
+            --border-accent: rgba(99,179,237,0.3);
+            --text-primary: #e8edf5;
+            --text-secondary: #8a9bb5;
+            --text-muted: #4a5a72;
+            --accent-blue: #63b3ed;
+            --accent-blue-dark: #2b6cb0;
+            --accent-green: #48bb78;
+            --accent-red: #fc8181;
+            --accent-yellow: #f6e05e;
+            --usa-color: #4299e1;
+            --eu-color: #667eea;
+            --china-color: #fc8181;
+            --gradient-hero: linear-gradient(135deg, #0a0e1a 0%, #0d1b3e 50%, #0a0e1a 100%);
+            --gradient-card: linear-gradient(135deg, rgba(19,29,53,0.9), rgba(15,22,41,0.95));
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-glow: 0 0 40px rgba(99,179,237,0.1);
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background grid */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Hero blob */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 500px;
+            background: radial-gradient(ellipse, rgba(66,99,235,0.12) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: blobPulse 8s ease-in-out infinite;
+        }
+
+        @keyframes blobPulse {
+            0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+            50% { opacity: 1; transform: translateX(-50%) scale(1.1); }
+        }
+
+        #app {
+            position: relative;
+            z-index: 1;
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
+        }
+
+        /* ── HEADER ── */
+        header {
+            padding: 60px 0 48px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99,179,237,0.1);
+            border: 1px solid rgba(99,179,237,0.25);
+            border-radius: 100px;
+            padding: 6px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent-blue);
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .header-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        header h1 {
+            font-size: clamp(28px, 5vw, 48px);
+            font-weight: 800;
+            line-height: 1.15;
+            background: linear-gradient(135deg, #e8edf5 30%, #63b3ed 70%, #667eea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            max-width: 580px;
+            margin: 0 auto 32px;
+            line-height: 1.7;
+        }
+
+        /* Country flags row */
+        .country-flags {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .flag-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        .flag-chip:hover {
+            border-color: var(--border-accent);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+
+        .flag-chip .flag-icon {
+            font-size: 18px;
+        }
+
+        /* ── CONTROLS PANEL ── */
+        #controls {
+            background: var(--gradient-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 36px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-card);
+            backdrop-filter: blur(12px);
+            transition: box-shadow 0.3s ease;
+        }
+
+        #controls:focus-within {
+            box-shadow: var(--shadow-card), var(--shadow-glow);
+        }
+
+        .controls-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .controls-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(10,14,26,0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        input[type="text"]:focus {
+            border-color: rgba(99,179,237,0.5);
+            background: rgba(10,14,26,0.8);
+            box-shadow: 0 0 0 3px rgba(99,179,237,0.08);
+        }
+
+        /* Custom select */
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '▾';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+            font-size: 14px;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 42px 14px 18px;
+            background: rgba(10,14,26,0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            color: var(--text-primary);
+            outline: none;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        select:focus {
+            border-color: rgba(99,179,237,0.5);
+            box-shadow: 0 0 0 3px rgba(99,179,237,0.08);
+        }
+
+        select option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        /* Suggested topics */
+        .suggestions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .suggestion-pill {
+            display: inline-block;
+            background: rgba(99,179,237,0.06);
+            border: 1px solid rgba(99,179,237,0.15);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 12px;
+            color: var(--accent-blue);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+
+        .suggestion-pill:hover {
+            background: rgba(99,179,237,0.12);
+            border-color: rgba(99,179,237,0.3);
+        }
+
+        /* Run button */
+        #start-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #2b6cb0 0%, #4263eb 100%);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #start-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        #start-btn:hover:not(:disabled)::before {
+            opacity: 1;
+        }
+
+        #start-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(66,99,235,0.35);
+        }
+
+        #start-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        #start-btn:disabled {
+            background: rgba(43,108,176,0.3);
+            color: rgba(255,255,255,0.4);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-icon {
+            font-size: 18px;
+        }
+
+        /* Spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── STATUS ── */
+        #status {
+            display: none;
+            background: rgba(246,224,94,0.06);
+            border: 1px solid rgba(246,224,94,0.2);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--accent-yellow);
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(246,224,94,0.2);
+            border-top-color: var(--accent-yellow);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        /* ── ERROR ── */
+        #error-box {
+            display: none;
+            background: rgba(252,129,129,0.06);
+            border: 1px solid rgba(252,129,129,0.25);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--accent-red);
+        }
+
+        /* ── TRANSCRIPT ── */
+        #transcript {
+            display: none;
+        }
+
+        .transcript-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .transcript-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .transcript-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 28px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .meta-label {
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .meta-value {
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Round divider */
+        .round-divider {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 32px 0 20px;
+        }
+
+        .round-divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+        }
+
+        .round-divider-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 4px 12px;
+        }
+
+        /* Message cards */
+        .message-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px 24px;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            animation: cardIn 0.35s ease both;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            border-radius: 3px 0 0 3px;
+        }
+
+        .message-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255,255,255,0.12);
+            transform: translateX(3px);
+        }
+
+        .agent-usa::before  { background: var(--usa-color); }
+        .agent-eu::before   { background: var(--eu-color); }
+        .agent-china::before { background: var(--china-color); }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .agent-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .avatar-usa   { background: rgba(66,153,225,0.15); border: 1px solid rgba(66,153,225,0.25); }
+        .avatar-eu    { background: rgba(102,126,234,0.15); border: 1px solid rgba(102,126,234,0.25); }
+        .avatar-china { background: rgba(252,129,129,0.15); border: 1px solid rgba(252,129,129,0.25); }
+
+        .agent-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .round-badge {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            padding: 3px 10px;
+            border-radius: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .stance-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .stance-supportive {
+            background: rgba(72,187,120,0.12);
+            color: var(--accent-green);
+            border: 1px solid rgba(72,187,120,0.25);
+        }
+
+        .stance-opposed {
+            background: rgba(252,129,129,0.12);
+            color: var(--accent-red);
+            border: 1px solid rgba(252,129,129,0.25);
+        }
+
+        .stance-neutral {
+            background: rgba(138,155,181,0.1);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-left: auto;
+        }
+
+        .message-body {
+            font-size: 14px;
+            line-height: 1.8;
+            color: #b8c5d8;
+            padding-left: 44px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 600px) {
+            #controls {
+                padding: 24px 20px;
+            }
+
+            .message-body {
+                padding-left: 0;
+            }
+
+            .transcript-meta {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-badge">
+                <span class="dot"></span>
+                Multi-Agent AI Debate Simulator
+            </div>
+            <h1>Climate Policy<br>Debate Simulator</h1>
+            <p>Three AI agents — each grounded in real policy positions — debate global climate action in a structured, turn-based format.</p>
+            <div class="country-flags">
+                <div class="flag-chip"><span class="flag-icon">🇺🇸</span> United States</div>
+                <div class="flag-chip"><span class="flag-icon">🇪🇺</span> European Union</div>
+                <div class="flag-chip"><span class="flag-icon">🇨🇳</span> China</div>
+            </div>
+        </header>
+
+        <section id="controls">
+            <div class="controls-title">Simulation Parameters</div>
+            <div class="form-group">
+                <label for="topic">Debate Topic</label>
+                <input
+                    type="text"
+                    id="topic"
+                    placeholder="e.g. Carbon pricing mechanisms in international trade"
+                    value="The global transition to renewable energy and the obligations of major emitting economies"
+                />
+                <div class="suggestions">
+                    <span class="suggestion-pill" onclick="setSuggestedTopic('Carbon border adjustment mechanisms and their impact on global trade')">Carbon border taxes</span>
+                    <span class="suggestion-pill" onclick="setSuggestedTopic('Climate finance obligations of developed nations to the Global South')">Climate finance</span>
+                    <span class="suggestion-pill" onclick="setSuggestedTopic('Fossil fuel phase-out timelines and energy security')">Fossil fuel phase-out</span>
+                    <span class="suggestion-pill" onclick="setSuggestedTopic('Net zero 2050 commitments and national sovereignty over energy policy')">Net zero 2050</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="rounds">Number of Rounds</label>
+                <div class="select-wrapper">
+                    <select id="rounds">
+                        <option value="1">1 round — 3 statements total</option>
+                        <option value="2" selected>2 rounds — 6 statements total</option>
+                        <option value="3">3 rounds — 9 statements total</option>
+                        <option value="4">4 rounds — 12 statements total</option>
+                        <option value="5">5 rounds — 15 statements total</option>
+                    </select>
+                </div>
+            </div>
+            <button id="start-btn" onclick="startDebate()">
+                <span class="btn-icon">⚡</span>
+                Run Simulation
+            </button>
+        </section>
+
+        <div id="status" style="display:none;">
+            <div class="status-spinner"></div>
+            Generating debate — this may take several minutes depending on model response time.
+        </div>
+
+        <div id="error-box" style="display:none;"></div>
+
+        <section id="transcript" style="display:none;">
+            <div class="transcript-header">
+                <h2>Debate Transcript</h2>
+            </div>
+            <div id="transcript-meta" class="transcript-meta"></div>
+            <div id="messages"></div>
+        </section>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
