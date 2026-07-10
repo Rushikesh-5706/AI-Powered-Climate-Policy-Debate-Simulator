@@ -20,9 +20,7 @@ class RAGService:
     def __init__(self, policies_dir: Path) -> None:
         self.policies_dir = policies_dir
         self.client = chromadb.Client()
-        self.embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="all-MiniLM-L6-v2"
-        )
+        self.embedding_fn = embedding_functions.DefaultEmbeddingFunction()
         self.collections: dict[str, chromadb.Collection] = {}
 
     async def initialize(self) -> None:

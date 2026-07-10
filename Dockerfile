@@ -10,9 +10,9 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Pre-download the sentence-transformer model during image build
+# Pre-download the default ONNX model during image build
 # so the container does not require internet access at runtime
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+RUN python -c "from chromadb.utils import embedding_functions; embedding_functions.DefaultEmbeddingFunction()"
 
 COPY . .
 
