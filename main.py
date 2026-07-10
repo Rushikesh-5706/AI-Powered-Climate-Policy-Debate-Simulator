@@ -6,6 +6,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import httpx
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
